@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>200 за 30</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#ffffff);
+  --bg2:var(--tg-theme-secondary-bg-color,#f2f2f7);
+  --text:var(--tg-theme-text-color,#111111);
+  --hint:var(--tg-theme-hint-color,#8e8e93);
+  --accent:var(--tg-theme-button-color,#2a8bf2);
+  --on-accent:var(--tg-theme-button-text-color,#ffffff);
+  --line:rgba(127,127,127,.22);
+  --green:#2fb86b;--green-bg:rgba(47,184,107,.16);--green-tx:#1f8a4f;
+  --warn:#e5a50a;--warn-bg:rgba(229,165,10,.18);--warn-tx:#9a6b00;
+}
+@media (prefers-color-scheme: dark){
+  :root:not(.tg){--bg:#17212b;--bg2:#0e1621;--text:#f5f5f5;--hint:#7d8b99;--accent:#5288c1}
+}
+.dark{--green-tx:#5fd394;--warn-tx:#f2c14e}
+@media (prefers-color-scheme: dark){:root:not(.tg){--green-tx:#5fd394;--warn-tx:#f2c14e}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg2);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:12px;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+.card{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px}
+.h{font-size:12px;color:var(--hint);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.big{font-size:30px;font-weight:700;letter-spacing:-.5px}
+.bar{height:16px;background:var(--bg2);border-radius:8px;overflow:hidden;margin:10px 0 6px;display:flex}
+.bar i{display:block;height:100%;transition:width .4s}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--hint)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--hint);margin-top:8px}
+.legend b{font-weight:600;color:var(--text)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.slot{height:58px;border-radius:10px;border:1px dashed var(--line);background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--hint);overflow:hidden;padding:0 4px}
+.slot b{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.slot.s1{border:1px solid var(--warn);background:var(--warn-bg);color:var(--warn-tx)}
+.slot.s2{border:1px solid var(--green);background:var(--green-bg);color:var(--green-tx)}
+.step{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:14px}
+.step span small{color:var(--hint)}
+.pill{border:1px solid var(--line);background:none;border-radius:9px;height:32px;min-width:52px;padding:0 12px;font-size:14px}
+.pill:active{transform:scale(.96)}
+.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.cal button{aspect-ratio:1;border-radius:7px;border:1px solid var(--line);background:none;font-size:12px;color:var(--hint);position:relative}
+.cal .act{background:var(--warn-bg);color:var(--warn-tx);border-color:transparent}
+.cal .ok{background:var(--green-bg);color:var(--green-tx);border-color:transparent;font-weight:600}
+.cal .now{border:2px solid var(--accent);color:var(--accent);font-weight:600}
+.cal .plan::after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--hint)}
+.gear{border:0;background:none;color:var(--hint);font-size:12px}
+.shade{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+.shade.open{opacity:1;pointer-events:auto}
+.sheet{background:var(--bg);width:100%;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:8px 16px 28px;transform:translateY(30px);transition:transform .25s}
+.shade.open .sheet{transform:none}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sheet h3{font-size:18px;font-weight:700;margin-bottom:2px}
+.sub{font-size:13px;color:var(--hint);margin-bottom:14px}
+.sec{font-size:12px;color:var(--hint);margin:16px 0 6px;text-transform:uppercase;letter-spacing:.3px}
+.cnt{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px}
+.cnt div{display:flex;align-items:center;gap:10px}
+.cnt b{min-width:24px;text-align:center}
+.cnt .pill{min-width:36px;padding:0}
+.log div{display:flex;gap:10px;padding:6px 0;font-size:14px;border-bottom:1px solid var(--line)}
+.log div:last-child{border:0}
+.log time{color:var(--hint);font-size:12px;min-width:38px;padding-top:1px}
+.task{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:14px}
+.task input{width:20px;height:20px;accent-color:var(--green);flex:none}
+.task.done span{color:var(--hint);text-decoration:line-through}
+.task .x{margin-left:auto;border:0;background:none;color:var(--hint);font-size:18px;line-height:1}
+.empty{color:var(--hint);font-size:13px;padding:4px 0}
+label{display:block;font-size:13px;color:var(--hint);margin:12px 0 4px}
+input[type=text],input[type=number],input[type=date],textarea{width:100%;border:0;background:var(--bg2);color:var(--text);font:inherit;padding:11px 12px;border-radius:10px;outline:none}
+textarea{min-height:70px;resize:vertical}
+.addrow{display:flex;gap:8px;margin-top:6px}
+.addrow input{flex:1}
+.seg{display:flex;gap:6px;margin-top:4px}
+.seg button{flex:1;height:38px;border-radius:10px;border:1px solid var(--line);background:none;font-size:13px}
+.seg .on0{border-color:var(--accent);color:var(--accent)}
+.seg .on1{border-color:var(--warn);background:var(--warn-bg);color:var(--warn-tx)}
+.seg .on2{border-color:var(--green);background:var(--green-bg);color:var(--green-tx)}
+.primary{width:100%;height:48px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;margin-top:18px}
+.err{color:#e5484d;font-size:13px;margin-top:4px;min-height:0}
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-80px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:14px;transition:transform .3s;z-index:20}
+.toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline">
+    <span class="big" id="got">0 ₽</span><span style="font-size:12px;color:var(--hint)" id="goalLabel">из 200 000 ₽</span>
+  </div>
+  <div class="bar"><i id="barGot" style="background:var(--green);width:0"></i><i id="barWait" style="background:var(--warn-bg);width:0"></i></div>
+  <div class="scale" id="scale"></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--green)"></i>получено</span>
+    <span><i class="dot" style="background:var(--warn)"></i>ждём остаток <b id="wait">0 ₽</b></span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="h"><span id="slotsLabel">8 клиентов</span><span id="slotsDone">0 из 8</span></div>
+  <div class="slots" id="slots"></div>
+</div>
+
+<div class="card">
+  <div class="h"><span id="todayLabel">Шаги сегодня</span></div>
+  <div class="step"><span>Сообщения продавцам <small id="t_sent">0/20</small></span><button class="pill" data-inc="sent">+1</button></div>
+  <div class="step"><span>Ответы <small id="t_replies">0</small></span><button class="pill" data-inc="replies">+1</button></div>
+  <div class="step"><span>Демо и созвоны <small id="t_demos">0/1</small></span><button class="pill" data-inc="demos">+1</button></div>
+  <div class="step"><span>Доход вне клиентов <small id="t_income">0 ₽</small></span><button class="pill" id="incomeBtn">+ ₽</button></div>
+</div>
+
+<div class="card">
+  <div class="h"><span>30 дней · нажми на день</span><button class="gear" id="settingsBtn">Настройки</button></div>
+  <div class="cal" id="cal"></div>
+  <div class="legend" style="margin-top:10px">
+    <span><i class="dot" style="background:var(--green)"></i>норма выполнена</span>
+    <span><i class="dot" style="background:var(--warn)"></i>были шаги</span>
+  </div>
+</div>
+
+<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
+if (tg) {
+  document.documentElement.classList.add('tg');
+  if (tg.colorScheme === 'dark') document.documentElement.classList.add('dark');
+  tg.ready(); tg.expand();
+}
+
+const $ = id => document.getElementById(id);
+const DAYS = 30, SLOTS = 8;
+const NORM = { sent: 20, demos: 1 };
+const STEP_NAMES = { sent: 'Сообщение продавцу', replies: 'Ответ от продавца', demos: 'Демо или созвон' };
+const STATUS = ['Ищем', 'Предоплата', 'Оплачен'];
+const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const today = () => iso(new Date());
+const dateOf = i => { const d = new Date(cfg.start + 'T12:00'); d.setDate(d.getDate() + i); return iso(d); };
+const dayNum = date => Math.round((new Date(date + 'T12:00') - new Date(cfg.start + 'T12:00')) / 864e5) + 1;
+const nowTime = () => new Date().toTimeString().slice(0, 5);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Plan for the first 10 days, added once on first launch; every task can be edited or removed
+const PLAN = {
+  1: ['Оформить шапку профиля на Авито', 'Выбрать 3 ниши'],
+  2: ['Тексты для 3 объявлений'],
+  3: ['Дизайн обложек для объявлений'],
+  4: ['Выложить первые объявления'],
+  5: ['Собрать демо-бота для первой ниши'],
+  6: ['Подключить бота к своим объявлениям'],
+  7: ['Запустить рекламу на 2–3 объявления'],
+  8: ['Написать 10 продавцам', 'Разобрать ответы'],
+  9: ['Собрать кейс первого клиента'],
+  10: ['Итоги 10 дней: что работает, что нет']
+};
+
+// Telegram CloudStorage keeps data in the user's Telegram account; localStorage is the fallback outside Telegram
+const store = {
+  cloud: !!(tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9')),
+  set(key, val) {
+    const s = JSON.stringify(val);
+    if (this.cloud) return new Promise(r => tg.CloudStorage.setItem(key, s, () => r()));
+    try { localStorage.setItem('c200v2_' + key, s); } catch (e) {}
+    return Promise.resolve();
+  },
+  all() {
+    if (this.cloud) return new Promise(r => tg.CloudStorage.getKeys((e, keys) => {
+      if (e || !keys || !keys.length) return r({});
+      tg.CloudStorage.getItems(keys, (e2, vals) => r(e2 ? {} : vals || {}));
+    }));
+    const out = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith('c200v2_')) out[k.slice(7)] = localStorage.getItem(k);
+      }
+    } catch (e) {}
+    return Promise.resolve(out);
+  }
+};
+
+let cfg = { start: today(), goal: 200000, seeded: false };
+let clients = Array.from({ length: SLOTS }, () => ({ name: '', amount: 25000, pre: 12500, status: 0 }));
+let days = {};
+
+const blankDay = () => ({ c: { sent: 0, replies: 0, demos: 0 }, inc: [], log: [], tasks: [], note: '' });
+const day = date => days[date] || (days[date] = blankDay());
+const saveDay = date => {
+  const d = day(date);
+  d.log = d.log.slice(-80);
+  return store.set('d_' + date, d);
+};
+const addLog = (date, txt) => day(date).log.push({ t: date === today() ? nowTime() : '', txt });
+
+async function load() {
+  const raw = await store.all();
+  for (const k in raw) {
+    let v; try { v = JSON.parse(raw[k]); } catch (e) { continue; }
+    if (k === 'cfg') cfg = Object.assign(cfg, v);
+    else if (k === 'clients' && Array.isArray(v)) clients = v;
+    else if (k.startsWith('d_')) days[k.slice(2)] = Object.assign(blankDay(), v);
+  }
+  if (!cfg.seeded) {
+    for (const n in PLAN) {
+      const date = dateOf(n - 1);
+      day(date).tasks.push(...PLAN[n].map(txt => ({ txt, done: false })));
+      await saveDay(date);
+    }
+    cfg.seeded = true;
+    await store.set('cfg', cfg);
+  }
+  render();
+}
+
+function money() {
+  let got = 0, wait = 0;
+  clients.forEach(c => {
+    if (c.status === 1) { got += +c.pre || 0; wait += Math.max((+c.amount || 0) - (+c.pre || 0), 0); }
+    if (c.status === 2) got += +c.amount || 0;
+  });
+  Object.values(days).forEach(d => d.inc.forEach(x => got += +x.a || 0));
+  return { got, wait };
+}
+
+function dayState(date) {
+  const d = days[date];
+  if (!d) return '';
+  if (d.c.sent >= NORM.sent && d.c.demos >= NORM.demos) return 'ok';
+  const any = d.c.sent || d.c.replies || d.c.demos || d.inc.length || d.log.length || d.tasks.some(t => t.done);
+  return any ? 'act' : '';
+}
+
+function render() {
+  const { got, wait } = money();
+  const g = cfg.goal;
+  $('got').textContent = fmt(got);
+  $('goalLabel').textContent = 'из ' + fmt(g);
+  $('wait').textContent = fmt(wait);
+  const pg = Math.min(got / g * 100, 100);
+  $('barGot').style.width = pg + '%';
+  $('barWait').style.width = Math.min(wait / g * 100, 100 - pg) + '%';
+  $('scale').innerHTML = [0, .25, .5, .75, 1].map(f => `<span>${f ? Math.round(g * f / 1000) + 'к' : 0}</span>`).join('');
+
+  const paid = clients.filter(c => c.status === 2).length;
+  $('slotsDone').textContent = `${paid} из ${SLOTS} оплатили`;
+  $('slots').innerHTML = clients.map((c, i) => `<button class="slot s${c.status}" data-slot="${i}">
+      <b>${c.status || c.name ? esc(c.name || 'Клиент ' + (i + 1)) : '+'}</b>${c.status ? STATUS[c.status].toLowerCase() : c.name ? 'в работе' : 'клиент ' + (i + 1)}</button>`).join('');
+  document.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => openClient(+b.dataset.slot));
+
+  const t = today(), n = dayNum(t), d = days[t] || blankDay();
+  $('todayLabel').textContent = n >= 1 && n <= DAYS ? `Шаги сегодня · день ${n}` : 'Шаги сегодня';
+  $('t_sent').textContent = `${d.c.sent}/${NORM.sent}`;
+  $('t_replies').textContent = d.c.replies;
+  $('t_demos').textContent = `${d.c.demos}/${NORM.demos}`;
+  $('t_income').textContent = fmt(d.inc.reduce((s, x) => s + (+x.a || 0), 0));
+
+  $('cal').innerHTML = Array.from({ length: DAYS }, (_, i) => {
+    const date = dateOf(i), st = dayState(date), dd = days[date];
+    const cls = [st, date === t ? 'now' : '', dd && dd.tasks.some(x => !x.done) && !st ? 'plan' : ''].join(' ');
+    return `<button class="${cls}" data-day="${date}">${i + 1}</button>`;
+  }).join('');
+  document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => openDay(b.dataset.day));
+}
+
+function haptic(type) { if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(type || 'light'); }
+
+function bump(date, key, delta) {
+  const d = day(date);
+  const v = Math.max(d.c[key] + delta, 0);
+  if (v === d.c[key]) return;
+  d.c[key] = v;
+  if (delta > 0) addLog(date, STEP_NAMES[key]);
+  else { const i = d.log.map(x => x.txt).lastIndexOf(STEP_NAMES[key]); if (i >= 0) d.log.splice(i, 1); }
+  saveDay(date);
+  haptic();
+}
+
+document.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => {
+  bump(today(), b.dataset.inc, 1); render();
+  if (b.dataset.inc === 'sent' && day(today()).c.sent === NORM.sent) toast('Норма сообщений на сегодня есть!');
+});
+
+// Bottom sheet
+function openSheet(html, onMount) {
+  $('sheet').innerHTML = '<div class="grab"></div>' + html;
+  $('shade').classList.add('open');
+  if (onMount) onMount();
+  if (tg) { tg.BackButton.show(); }
+}
+function closeSheet() {
+  $('shade').classList.remove('open');
+  if (tg) tg.BackButton.hide();
+  render();
+}
+$('shade').onclick = e => { if (e.target === $('shade')) closeSheet(); };
+if (tg) tg.BackButton.onClick(closeSheet);
+
+function openDay(date) {
+  const n = dayNum(date);
+  const label = new Date(date + 'T12:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+  const draw = () => {
+    const d = day(date);
+    const incSum = d.inc.reduce((s, x) => s + (+x.a || 0), 0);
+    openSheet(`
+      <h3>День ${n}</h3><div class="sub">${label}${date === today() ? ' · сегодня' : ''}</div>
+      <div class="sec">Шаги</div>
+      ${['sent', 'replies', 'demos'].map(k => `<div class="cnt"><span>${{ sent: 'Сообщения', replies: 'Ответы', demos: 'Демо и созвоны' }[k]}${NORM[k] ? ` <small style="color:var(--hint)">норма ${NORM[k]}</small>` : ''}</span>
+        <div><button class="pill" data-d="${k}" data-v="-1">−</button><b>${d.c[k]}</b><button class="pill" data-d="${k}" data-v="1">+</button></div></div>`).join('')}
+      <div class="sec">Что сделано</div>
+      <div class="log">${d.log.length ? d.log.slice().reverse().map(x => `<div><time>${x.t || ''}</time><span>${esc(x.txt)}</span></div>`).join('') : '<div class="empty" style="border:0">Пока ничего. Действия с главного экрана появятся здесь.</div>'}</div>
+      ${d.inc.length ? `<div class="sec">Доход · ${fmt(incSum)}</div><div class="log">${d.inc.map(x => `<div><span style="flex:1">${esc(x.txt || 'Доход')}</span><b>+${fmt(x.a)}</b></div>`).join('')}</div>` : ''}
+      <div class="sec">Задачи</div>
+      <div id="tasks">${d.tasks.length ? d.tasks.map((x, i) => `<label class="task ${x.done ? 'done' : ''}" style="margin:0;color:inherit"><input type="checkbox" data-t="${i}" ${x.done ? 'checked' : ''}><span>${esc(x.txt)}</span><button class="x" data-rm="${i}" aria-label="Удалить задачу">×</button></label>`).join('') : '<div class="empty">Задач нет</div>'}</div>
+      <div class="addrow"><input type="text" id="newTask" placeholder="Нарисовать обложку объявления"><button class="pill" id="addTask">Добавить</button></div>
+      <div class="err" id="taskErr"></div>
+      <div class="sec">Заметка дня</div>
+      <textarea id="note" placeholder="Что получилось, что мешало">${esc(d.note)}</textarea>
+      <button class="primary" id="closeDay">Готово</button>`, () => {
+      document.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { bump(date, b.dataset.d, +b.dataset.v); draw(); });
+      document.querySelectorAll('[data-t]').forEach(c => c.onchange = () => {
+        const t = d.tasks[c.dataset.t]; t.done = c.checked;
+        if (t.done) { addLog(date, 'Задача: ' + t.txt); haptic('medium'); }
+        saveDay(date); draw();
+      });
+      document.querySelectorAll('[data-rm]').forEach(b => b.onclick = e => { e.preventDefault(); d.tasks.splice(+b.dataset.rm, 1); saveDay(date); draw(); });
+      const add = () => {
+        const v = $('newTask').value.trim();
+        if (!v) { $('taskErr').textContent = 'Напишите задачу'; return; }
+        d.tasks.push({ txt: v, done: false }); saveDay(date); draw();
+      };
+      $('addTask').onclick = add;
+      $('newTask').onkeydown = e => { if (e.key === 'Enter') add(); };
+      $('newTask').oninput = () => $('taskErr').textContent = '';
+      $('note').onchange = () => { d.note = $('note').value.trim(); saveDay(date); };
+      $('closeDay').onclick = () => { d.note = $('note').value.trim(); saveDay(date); closeSheet(); };
+    });
+  };
+  draw();
+}
+
+function openClient(i) {
+  const c = clients[i];
+  let status = c.status;
+  openSheet(`
+    <h3>Клиент ${i + 1}</h3><div class="sub">Предоплата сразу, остаток после настройки</div>
+    <label for="cName">Имя или бизнес</label><input type="text" id="cName" value="${esc(c.name)}" placeholder="Сергей, ремонт квартир">
+    <label for="cAmount">Сумма сделки, ₽</label><input type="number" inputmode="numeric" id="cAmount" value="${c.amount}">
+    <label for="cPre">Предоплата, ₽</label><input type="number" inputmode="numeric" id="cPre" value="${c.pre}">
+    <div class="err" id="cErr"></div>
+    <label>Статус</label>
+    <div class="seg" id="cStatus">${STATUS.map((s, k) => `<button data-s="${k}">${s}</button>`).join('')}</div>
+    <button class="primary" id="cSave">Сохранить</button>`, () => {
+    const paint = () => document.querySelectorAll('[data-s]').forEach(b => b.className = +b.dataset.s === status ? 'on' + status : '');
+    paint();
+    document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { status = +b.dataset.s; paint(); });
+    ['cAmount', 'cPre'].forEach(id => $(id).oninput = () => $('cErr').textContent = '');
+    $('cSave').onclick = () => {
+      const amount = +$('cAmount').value, pre = +$('cPre').value;
+      if (!(amount > 0)) { $('cErr').textContent = 'Укажите сумму сделки'; return; }
+      if (pre < 0 || pre > amount) { $('cErr').textContent = 'Предоплата должна быть от 0 до суммы сделки'; return; }
+      const name = $('cName').value.trim();
+      if (status !== c.status) {
+        const who = name || 'Клиент ' + (i + 1);
+        const msg = status === 1 ? `${who}: предоплата ${fmt(pre)}` : status === 2 ? `${who}: оплачен полностью, ${fmt(amount)}` : `${who}: снова в поиске`;
+        addLog(today(), msg); saveDay(today());
+        if (status === 2) { haptic('heavy'); toast('Ещё один клиент оплатил!'); }
+      }
+      Object.assign(c, { name, amount, pre, status });
+      store.set('clients', clients);
+      closeSheet();
+    };
+  });
+}
+
+$('incomeBtn').onclick = () => openSheet(`
+  <h3>Доход вне клиентов</h3><div class="sub">Монтаж, разовые заказы и всё остальное</div>
+  <label for="iAmount">Сумма, ₽</label><input type="number" inputmode="numeric" id="iAmount" placeholder="2000">
+  <div class="err" id="iErr"></div>
+  <label for="iTxt">За что</label><input type="text" id="iTxt" placeholder="Монтаж Reels для салона">
+  <button class="primary" id="iSave">Добавить</button>`, () => {
+  $('iAmount').oninput = () => $('iErr').textContent = '';
+  $('iSave').onclick = () => {
+    const a = Math.round(+$('iAmount').value);
+    if (!(a > 0)) { $('iErr').textContent = 'Введите сумму'; return; }
+    const txt = $('iTxt').value.trim() || 'Доход';
+    const d = day(today());
+    d.inc.push({ a, txt });
+    addLog(today(), `${txt}: +${fmt(a)}`);
+    saveDay(today()); haptic('medium'); closeSheet();
+  };
+});
+
+$('settingsBtn').onclick = () => openSheet(`
+  <h3>Настройки</h3><div class="sub">Старт челленджа и цель</div>
+  <label for="sStart">Первый день</label><input type="date" id="sStart" value="${cfg.start}">
+  <label for="sGoal">Цель, ₽</label><input type="number" inputmode="numeric" id="sGoal" value="${cfg.goal}">
+  <div class="err" id="sErr"></div>
+  <button class="primary" id="sSave">Сохранить</button>`, () => {
+  $('sSave').onclick = () => {
+    const g = +$('sGoal').value, s = $('sStart').value;
+    if (!s || !(g > 0)) { $('sErr').textContent = 'Укажите дату и цель'; return; }
+    cfg.start = s; cfg.goal = g; store.set('cfg', cfg); closeSheet();
+  };
+});
+
+function toast(t) {
+  const el = $('toast'); el.textContent = t; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+load();
+</script>
+</body>
+</html>
